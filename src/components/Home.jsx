@@ -11,8 +11,8 @@ export default function HomeContainer() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pages, setPages] = useState(new Map());
   const [maxProducts, setMaxProducts] = useState(1);
+  const [limitProducts, setLimitProducts] = useState(8);
 
-  const limitProducts = 8;
   const isLastPage = currentPage === Math.ceil(maxProducts / limitProducts);
   const isFirstPage = currentPage === 1;
   const BASE_URL = "https://dummyjson.com";
@@ -35,6 +35,14 @@ export default function HomeContainer() {
     }
   }
 
+  function handleChangeLimit(event) {
+    console.log(event.target.value);
+    let value = parseInt(event.target.value);
+    setLimitProducts(value);
+    setPages(new Map());
+    setCurrentPage(1);
+  }
+
   function handlePageUp() {
     if (currentPage < maxProducts / limitProducts) setCurrentPage(currentPage + 1);
   }
@@ -45,14 +53,12 @@ export default function HomeContainer() {
 
   useEffect(() => {
     if (pages.has(currentPage)) {
-      // console.log("already has page " + currentPage);
       setProductList(pages.get(currentPage));
       return;
     }
-    // console.log("doesnt have page " + currentPage);
     const query = `?skip=${(currentPage - 1) * limitProducts}&limit=${limitProducts}`;
     fetchProducts(query).then((products) => setPages(pages.set(currentPage, products)));
-  }, [currentPage]);
+  }, [currentPage, limitProducts]);
 
   return (
     <>
@@ -65,10 +71,22 @@ export default function HomeContainer() {
           <Button onClick={handlePageDown} disabled={isLoading || isFirstPage}>
             <IconArrowNarrowLeft />
           </Button>
-          <span className="px-2 py-1 text-lg font-medium text-text">{currentPage}</span>
+          <span className="px-2 py-1 text-lg font-medium text-text">
+            {currentPage}/{Math.ceil(maxProducts / limitProducts)}
+          </span>
           <Button onClick={handlePageUp} disabled={isLoading || isLastPage}>
             <IconArrowNarrowRight />
           </Button>
+          <div>
+            <label>
+              <span>Limit: </span>
+              <select value={limitProducts} onChange={handleChangeLimit} className="rounded-md px-2 py-1 font-medium">
+                <option value="8">8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
+              </select>
+            </label>
+          </div>
         </div>
         {isLoading && (
           <div className="grid h-[500px] w-full place-content-center">
@@ -77,7 +95,36 @@ export default function HomeContainer() {
             </div>
           </div>
         )}
-        {!isLoading && <ProductsListContainer listOfProducts={productList} />}
+        {!isLoading && (
+          <>
+            <ProductsListContainer listOfProducts={productList} />{" "}
+            <div className="flex w-fit items-center gap-2 rounded-md bg-secondary px-2 py-1">
+              <Button onClick={handlePageDown} disabled={isLoading || isFirstPage}>
+                <IconArrowNarrowLeft />
+              </Button>
+              <span className="px-2 py-1 text-lg font-medium text-text">
+                {currentPage}/{Math.ceil(maxProducts / limitProducts)}
+              </span>
+              <Button onClick={handlePageUp} disabled={isLoading || isLastPage}>
+                <IconArrowNarrowRight />
+              </Button>
+              <div>
+                <label>
+                  <span>Limit: </span>
+                  <select
+                    value={limitProducts}
+                    onChange={handleChangeLimit}
+                    className="rounded-md px-2 py-1 font-medium"
+                  >
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </>
+        )}
         {!isLoading && productList.length === 0 && <h2>No se encontraron productos</h2>}
       </div>
     </>
