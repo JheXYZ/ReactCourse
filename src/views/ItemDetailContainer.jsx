@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Loading from "../components/Loader/Loading";
 import { IconRosetteDiscountFilled, IconShoppingCartPlus } from "@tabler/icons-react";
 import Button from "./../components/Button";
+import ItemCount from "./../components/ItemCount";
 
 export default function ItemDetailContainer() {
   const { id } = useParams();
@@ -86,24 +87,12 @@ export default function ItemDetailContainer() {
             Stock: <span>{product.stock}</span>
           </h3>
           <div className="flex items-center justify-between gap-2">
-            <label className="block w-full text-sm font-medium text-text">
-              Buy quantity
-              <input
-                type="range"
-                min="1"
-                max={product.stock}
-                step="1"
-                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
-                value={selectedStock}
-                onChange={handleChange}
-              />
-            </label>
-            <input
-              type="number"
-              min="1"
-              max={product.stock}
+            <ItemCount
+              text="Buy quantity"
               value={selectedStock}
-              className="rounded-md bg-secondary px-2 py-1"
+              min={1}
+              max={product.stock}
+              step={1}
               onChange={handleChange}
             />
           </div>
