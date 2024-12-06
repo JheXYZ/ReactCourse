@@ -7,6 +7,7 @@ export default function Button({
   disabled = false,
   styles,
   extraStyles = "",
+  submit = false,
 }) {
   function handleClick() {
     if (!onClick || disabled) return;
@@ -19,14 +20,13 @@ export default function Button({
     `rounded-lg border-2 border-accent bg-gradient-to-tr from-background to-secondary disabled:saturate-0 disabled:cursor-not-allowed px-4 py-2 text-text transition-all ${extraStyles}`;
 
   if (!disabled) {
-    style +=
-      "hover:font-medium hover:shadow-md hover:shadow-accent hover:brightness-110 active:scale-95 active:brightness-100";
+    style += " hover:font-medium hover:shadow-md hover:shadow-accent hover:brightness-110 active:scale-95 active:brightness-100";
     if (widening) style += "hover:tracking-wider";
   }
   if (underline) style += "hover:underline";
 
   return (
-    <button className={style} onClick={handleClick} disabled={disabled}>
+    <button className={style} onClick={handleClick} disabled={disabled} type={submit ? "submit" : "button"}>
       <span>{children}</span>
     </button>
   );

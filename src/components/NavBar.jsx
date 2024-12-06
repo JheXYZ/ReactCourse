@@ -1,29 +1,9 @@
-import { useState } from "react";
-import categoriesJSON from "../data/categories.json";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useContext } from "react";
+import { CategoriesContext } from "../context/CategoriesContext";
 
 export default function NavBar() {
-  const [isOpen, setOpen] = useState(false);
-  const [categories, setCategories] = useState([]);
-
-  function toggleOpen() {
-    setOpen(!isOpen);
-  }
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("https://dummyjson.com/products/categories");
-        if (!res.ok) throw new Error(`Error al obtener las categorias: ${res.statusText}`);
-        const data = await res.json();
-        setCategories(data);
-      } catch (e) {
-        console.error(`Hubo un error al obtener las categorias: ${e}`);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const [categories] = useContext(CategoriesContext);
 
   return (
     <section className="flex w-full flex-col gap-2">
@@ -42,15 +22,15 @@ export default function NavBar() {
             <details className="z-10">
               <summary className="inline-block cursor-pointer select-none">Categories</summary>
               <ul className="absolute left-1/2 grid max-h-96 w-max max-w-screen-sm -translate-x-1/2 translate-y-5 grid-cols-1 justify-center gap-1 overflow-scroll rounded-lg bg-secondary bg-opacity-60 p-1 text-text shadow-md backdrop-blur-sm min-[425px]:grid-cols-2 sm:grid-cols-3">
-                {categories.length == 0 && <li className="px-2 py-1 font-normal text-gray-400">No categories found</li>}
+                {categories.size === 0 && <li className="px-2 py-1 font-normal text-gray-400">No categories found</li>}
                 {categories &&
-                  categories.map((cat) => (
-                    <li key={cat.slug} className="px-2 py-1">
+                  Array.from(categories.entries()).map(([slug, category]) => (
+                    <li key={slug} className="px-2 py-1">
                       <Link
-                        to={`/category/${cat.slug}`}
+                        to={`/category/${slug}`}
                         className="inline-block w-full rounded-md border border-primary bg-secondary px-2 py-1 transition hover:scale-x-105 hover:shadow-md hover:shadow-accent"
                       >
-                        {cat.name}
+                        {category.name}
                       </Link>
                     </li>
                   ))}
