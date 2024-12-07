@@ -2,7 +2,7 @@ import NavBar from "./NavBar";
 import CartWidget from "./CartWidget";
 import logo from "../assets/logo.svg";
 import { IconUser, IconUserExclamation } from "@tabler/icons-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { loginUser } from "../firebase/firebase";
 import { UserContext } from "../context/UserContext";
@@ -87,7 +87,9 @@ export default function Header() {
                       Welcome <span className="text-xl font-semibold text-text">{user.userName}</span>
                     </p>
                     <ul className="">
-                      <li className="ml-2 cursor-pointer hover:underline">My Orders</li>
+                      <li className="ml-2 cursor-pointer hover:underline">
+                        <Link to="/user/orders">My Orders</Link>
+                      </li>
                     </ul>
                     <div className="mt-2 flex justify-center">
                       <Button onClick={handleLogout} extraStyles="text-sm hue-rotate-180 saturate-150">

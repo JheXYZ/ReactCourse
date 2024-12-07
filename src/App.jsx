@@ -9,6 +9,7 @@ import ProductsProvider from "./context/ProductsContext";
 import CategoriesProvider from "./context/CategoriesContext";
 import CartProvider from "./context/CartContext";
 import UserProvider from "./context/UserContext";
+import OrdersContainer from "./views/OrdersContainer";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
                     <Route exact path="/item/:id" element={<ItemDetailContainer />} />
                     <Route exact path="/about-us" element={<AboutUsContainer />} />
                     <Route exact path="/cart" element={<CartContainer />} />
+                    <Route exact path="/user/orders" element={<OrdersContainer />} />
                   </Routes>
                 </main>
               </CartProvider>

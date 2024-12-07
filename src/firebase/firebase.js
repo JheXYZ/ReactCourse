@@ -215,3 +215,17 @@ export async function loginUser(user) {
   const userRes = { id: userDoc.id, email: userDoc.data().email, userName: userDoc.data().userName };
   return { user: userRes, errorMessage: null };
 }
+
+export async function getOrdersByUser(userID) {
+  if (!userID || typeof userID !== "string") return { orders: null, errorMessage: "Invalid user ID" };
+  const ordersReference = collection(db, "orders");
+  const ordersQuery = query(ordersReference, where("buyerID", "==", userID), orderBy("createdAt", "desc"));
+  const ordersSnapshot = await getDocs(ordersQuery);
+  if (ordersSnapshot.empty) return { orders: [], errorMessage: "No orders found" };
+
+  const orders = ordersSnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  return { orders: orders, errorMessage: null };
+}

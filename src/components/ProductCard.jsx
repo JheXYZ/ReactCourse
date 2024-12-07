@@ -2,7 +2,7 @@ import AddToCart from "./AddToCart";
 import { Link } from "react-router-dom";
 import { IconRosetteDiscountFilled, IconShoppingCartPlus } from "@tabler/icons-react";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, addToCart = true }) {
   return (
     <article className="h-full w-full rounded-xl border-2 border-accent p-3 shadow-md backdrop-brightness-90 transition hover:bg-secondary hover:shadow-accent">
       <div className="cursor-default">
@@ -35,13 +35,15 @@ export default function ProductCard({ product }) {
           <h3 className="text-lg text-text sm:text-2xl">{finalPrice(product.price, product.discountedPercentage)}</h3>
         </div>
       </div>
-      <footer className="mt-1 flex justify-center">
-        <div className="transition-transform hover:scale-105 active:scale-100">
-          <AddToCart productID={product.id}>
-            <IconShoppingCartPlus />
-          </AddToCart>
-        </div>
-      </footer>
+      {addToCart && (
+        <footer className="mt-1 flex justify-center">
+          <div className="transition-transform hover:scale-105 active:scale-100">
+            <AddToCart productID={product.id}>
+              <IconShoppingCartPlus />
+            </AddToCart>
+          </div>
+        </footer>
+      )}
     </article>
   );
 }
