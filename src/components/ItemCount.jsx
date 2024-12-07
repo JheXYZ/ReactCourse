@@ -1,9 +1,9 @@
 import Button from "./Button";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
-export default function ItemCount({ text, value = 1, min = 1, max = 1, step = 1, slider = false, onChange }) {
+export default function ItemCount({ text, value = 1, min = 1, max = 1, step = 1, slider = false, onChange, id }) {
   function handleOperation(operation) {
-    onChange({ target: { value: (parseInt(value) || 0) + operation } });
+    onChange({ target: { value: parseInt(value || 0) + operation } }, id);
   }
 
   return (
@@ -18,8 +18,6 @@ export default function ItemCount({ text, value = 1, min = 1, max = 1, step = 1,
         </Button>
       </div>
       <div>
-        {" "}
-        {/*className="w-full" */}
         {slider && (
           <input
             type="range"
@@ -31,7 +29,15 @@ export default function ItemCount({ text, value = 1, min = 1, max = 1, step = 1,
             onChange={onChange}
           />
         )}
-        <input type="number" min={min} max={max} step={step} value={value} className="rounded-md bg-secondary px-2 py-1" onChange={onChange} />
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          className="rounded-md bg-secondary px-2 py-1"
+          onChange={(e) => onChange(e, id)}
+        />
       </div>
     </>
   );

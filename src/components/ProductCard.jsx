@@ -1,4 +1,3 @@
-import Button from "./Button";
 import AddToCart from "./AddToCart";
 import { Link } from "react-router-dom";
 import { IconRosetteDiscountFilled, IconShoppingCartPlus } from "@tabler/icons-react";

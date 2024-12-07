@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, limit, writeBatch } from "firebase/firestore";
+import { getFirestore, doc, getDoc, getDocs, addDoc, collection, query, where, orderBy, limit, writeBatch } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -84,7 +84,7 @@ export async function addProduct(product) {
   }
 }
 
-export async function updateProduct(id, product) {
+async function updateProduct(id, product) {
   const { isValid, invalidAtributes } = validateProduct(product);
   if (!isValid) return { success: false, errorMessage: `${invalidAtributes.join(", ")}` };
   try {
@@ -93,6 +93,22 @@ export async function updateProduct(id, product) {
     return { success: true, errorMessage: null };
   } catch (error) {
     console.error("[Firebase] An error occurred while updating the product:", error);
+  }
+}
+
+async function batchUpdateProducts(products) {
+  const batch = writeBatch(db);
+
+  products.forEach((product) => {
+    const productDocRef = doc(db, "productos", product.id);
+    batch.update(productDocRef, product);
+  });
+  try {
+    await batch.commit();
+    return true;
+  } catch (error) {
+    console.error("[Firebase] An error occurred while batch updating the products:", error);
+    return Promise.reject(error);
   }
 }
 
@@ -119,10 +135,10 @@ export async function batchAddProducts(products) {
   try {
     const productsCollection = collection(db, "productos");
     const batch = writeBatch(db);
-
+    console.log(products);
     products.forEach((product) => {
       const productDocRef = doc(productsCollection);
-      batch.set(productDocRef, formatProduct(product));
+      batch.set(productDocRef, product);
     });
 
     await batch.commit();
@@ -132,28 +148,20 @@ export async function batchAddProducts(products) {
   }
 }
 
-function formatProduct(product) {
-  return {
-    title: product.title,
-    price: product.price,
-    stock: product.stock,
-    category: product.category,
-    description: product.description,
-    images: product.images,
-    dimensions: product.dimensions,
-    thumbnail: product.thumbnail,
-    category: product.category,
-    rating: product.rating,
-    discountedPercentage: product.discountPercentage,
-  };
-}
-
 export async function addAnOrder(order) {
   const { isValid, invalidAtributes } = validateOrder(order);
   if (!isValid) return { id: null, errorMessage: `${invalidAtributes.join(", ")}` };
   try {
     const ordersCollection = collection(db, "orders");
     const orderReference = await addDoc(ordersCollection, order);
+    let products = [];
+    for (const item of order.items) {
+      const { product } = await getProductById(item.id);
+      product.stock -= item.quantity;
+      products.push(product);
+    }
+    if (!(await batchUpdateProducts(products))) return { id: null, errorMessage: "Error updating products" };
+
     return { id: orderReference.id, errorMessage: null };
   } catch (error) {
     console.error("[Firebase] An error occurred while adding the product:", error);
@@ -164,13 +172,23 @@ export async function addAnOrder(order) {
 function validateOrder(order) {
   let invalidAtributes = [];
   if (!order || typeof order !== "object") invalidAtributes.push("Invalid object");
-  if (!order.buyer || typeof order.buyer !== "string") invalidAtributes.push("Invalid buyer");
-  if (!userExists(order.buyer)) invalidAtributes.push("Buyer already exists");
+  if (!order.buyerID || typeof order.buyerID !== "string") invalidAtributes.push("Invalid buyer");
+  if (!userExists(order.buyerID)) invalidAtributes.push("User not found");
+  if (!order.items || !Array.isArray(order.items) || order.items.length === 0 || !isStockAvailable(order.items))
+    invalidAtributes.push("Not enough stock");
   if (!order.createdAt || !(order.createdAt instanceof Date)) invalidAtributes.push("Invalid createdAt");
-  if (!Array.isArray(items) || order.items.length === 0 || order.items.some((item) => typeof item !== "object"))
+  if (!Array.isArray(order.items) || order.items.length === 0 || order.items.some((item) => typeof item !== "object"))
     invalidAtributes.push("Invalid items");
   if (!order.total || typeof order.total !== "number") invalidAtributes.push("Invalid total");
   return { isValid: invalidAtributes.length === 0, invalidAtributes: invalidAtributes };
+}
+
+async function isStockAvailable(items) {
+  for (const { id, quantity } of items) {
+    const { product, errorMessage } = await getProductById(id);
+    if (errorMessage || product.stock - quantity < 0) return false;
+  }
+  return true;
 }
 
 async function userExists(id) {
@@ -194,6 +212,6 @@ export async function loginUser(user) {
   const usersSnapshot = await getDocs(usersQuery);
   if (usersSnapshot.empty) return { user: null, errorMessage: "User not found" };
   const userDoc = usersSnapshot.docs[0];
-  const userRes = { id: userDoc.id, ...userDoc.data() };
+  const userRes = { id: userDoc.id, email: userDoc.data().email, userName: userDoc.data().userName };
   return { user: userRes, errorMessage: null };
 }

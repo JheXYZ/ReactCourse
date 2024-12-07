@@ -1,24 +1,35 @@
 import { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
-import { IconRosetteDiscountFilled, IconShoppingCartPlus } from "@tabler/icons-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { IconRosetteDiscountFilled } from "@tabler/icons-react";
 import Button from "./../components/Button";
 import ItemCount from "./../components/ItemCount";
 import { ProductsContext } from "../context/ProductsContext";
 import { getProductById } from "../firebase/firebase";
 import Loading from "./../components/Loader/Loading";
+import AddToCart from "../components/AddToCart";
+import { CartContext } from "../context/CartContext";
 
 export default function ItemDetailContainer() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [productsList] = useContext(ProductsContext);
+  const [items, , addToCart] = useContext(CartContext);
   const [product, setProduct] = useState(null);
   const [selectedStock, setSelectedStock] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleChange(event) {
     let value = parseInt(event.target.value);
     if (value > product.stock) value = product.stock;
     else if (value <= 0) value = 1;
-
     setSelectedStock(value);
+  }
+
+  async function handleBuy() {
+    setIsLoading(true);
+    if (!items.has(id)) if (!(await addToCart(id, selectedStock))) return alert("Product not available or not enough stock");
+    setIsLoading(false);
+    navigate("/cart");
   }
 
   useEffect(() => {
@@ -67,16 +78,14 @@ export default function ItemDetailContainer() {
             Stock: <span>{product.stock}</span>
           </h3>
           <div className="flex items-center gap-2">
-            <ItemCount text="Buy quantity" value={selectedStock} min={1} max={product.stock} step={1} onChange={handleChange} />
+            <ItemCount slider text="Buy quantity" value={selectedStock} min={1} max={product.stock} step={1} onChange={handleChange} />
           </div>
         </div>
         <div className="flex w-full flex-wrap justify-center gap-2">
-          <Button widening extraStyles={"px-9"} onClick={() => alert("Buy Pressed (WIP)")}>
+          <Button widening extraStyles={"px-9"} onClick={handleBuy} disabled={isLoading}>
             Buy
           </Button>
-          <Button onClick={() => alert("Added to Cart (WIP)")} extraStyles={"px-9"}>
-            <IconShoppingCartPlus />
-          </Button>
+          <AddToCart productID={id} quantity={selectedStock} />
         </div>
       </aside>
     </article>

@@ -24,11 +24,21 @@ export default function CartProvider({ children }) {
     localStorage.removeItem("cartItems");
   }
 
-  useEffect(() => {
-    setItems(new Map(getFromLocalStorage("cartItems")));
-  }, []);
+  function updateCart(id, quantity) {
+    setItems(items.set(id, quantity));
+    setToLocalStorage("cartItems", Array.from(items.entries()));
+  }
 
-  return <CartContext.Provider value={[items, setItems, addToCart, clearCart]}>{children}</CartContext.Provider>;
+  function deleteItem(id) {
+    setItems(new Map(Array.from(items.entries()).filter(([key]) => key !== id)));
+    setToLocalStorage("cartItems", Array.from(items.entries()));
+  }
+
+  useEffect(() => {
+    setToLocalStorage("cartItems", Array.from(items.entries()));
+  }, [items]);
+
+  return <CartContext.Provider value={[items, setItems, addToCart, clearCart, updateCart, deleteItem]}>{children}</CartContext.Provider>;
 }
 
 /**

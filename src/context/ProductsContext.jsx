@@ -19,5 +19,11 @@ export default function ProductsProvider({ children }) {
     });
   }, []);
 
-  return <ProductsContext.Provider value={[products, setProducts]}>{children}</ProductsContext.Provider>;
+  function updateProducts(updatedProducts) {
+    updatedProducts.forEach((product) => {
+      setProducts(products.set(product.id, product));
+    });
+  }
+
+  return <ProductsContext.Provider value={[products, setProducts, updateProducts]}>{children}</ProductsContext.Provider>;
 }
